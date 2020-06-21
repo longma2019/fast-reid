@@ -86,7 +86,7 @@ _C.MODEL.LOSSES.CE = CN()
 # if epsilon == 0, it means no label smooth regularization,
 # if epsilon == -1, it means adaptive label smooth regularization
 _C.MODEL.LOSSES.CE.EPSILON = 0.0
-_C.MODEL.LOSSES.CE.ALPHA = 0.3
+_C.MODEL.LOSSES.CE.ALPHA = 0.2
 _C.MODEL.LOSSES.CE.SCALE = 1.0
 
 # Triplet Loss options
@@ -94,8 +94,13 @@ _C.MODEL.LOSSES.TRI = CN()
 _C.MODEL.LOSSES.TRI.MARGIN = 0.3
 _C.MODEL.LOSSES.TRI.NORM_FEAT = False
 _C.MODEL.LOSSES.TRI.HARD_MINING = True
-_C.MODEL.LOSSES.TRI.USE_COSINE_DIST = False
 _C.MODEL.LOSSES.TRI.SCALE = 1.0
+
+# Circle Loss options
+_C.MODEL.LOSSES.CIRCLE = CN()
+_C.MODEL.LOSSES.CIRCLE.MARGIN = 0.25
+_C.MODEL.LOSSES.CIRCLE.ALPHA = 128
+_C.MODEL.LOSSES.CIRCLE.SCALE = 1.0
 
 # Focal Loss options
 _C.MODEL.LOSSES.FL = CN()
@@ -162,6 +167,8 @@ _C.DATASETS.COMBINEALL = False
 _C.DATALOADER = CN()
 # P/K Sampler for data loading
 _C.DATALOADER.PK_SAMPLER = True
+# Naive sampler which don't consider balanced identity sampling
+_C.DATALOADER.NAIVE_WAY = False
 # Number of instance for each person
 _C.DATALOADER.NUM_INSTANCE = 4
 _C.DATALOADER.NUM_WORKERS = 8
