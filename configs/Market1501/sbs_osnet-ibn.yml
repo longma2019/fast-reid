@@ -3,10 +3,11 @@ _BASE_: "../Base-Strongerbaseline.yml"
 MODEL:
   BACKBONE:
     WITH_IBN: True
-    PRETRAIN_PATH: "/home/ywu/.cache/torch/checkpoints/resnet50_ibn_a.pth.tar"
+    NAME: "build_osnet_backbone"
 
   HEADS:
     NUM_CLASSES: 751
+    IN_FEAT: 512
 
 DATASETS:
   NAMES: ("Market1501",)
@@ -17,4 +18,4 @@ TEST:
   PRECISE_BN:
     DATASET: 'Market1501'
 
-OUTPUT_DIR: "logs/market1501/sbs_R50-ibn"
+OUTPUT_DIR: "logs/market1501/sbs_osnet-ibn"

@@ -1,0 +1,17 @@
+_BASE_: "../Base-bagtricks.yml"
+
+MODEL:
+  BACKBONE:
+    NAME: "build_osnet_backbone"
+
+  HEADS:
+    NUM_CLASSES: 751
+    IN_FEAT: 512
+
+
+DATASETS:
+  NAMES: ("Market1501",)
+  TESTS: ("Market1501",)
+
+
+OUTPUT_DIR: "logs/market1501/bagtricks_osnet"
