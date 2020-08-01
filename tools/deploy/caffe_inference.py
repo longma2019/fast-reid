@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
 @author:  xingyu liao
-@contact: liaoxingyu5@jd.com
+@contact: sherlockliao01@gmail.com
 """
 
 import caffe
@@ -43,7 +43,7 @@ def get_parser():
     parser.add_argument(
         "--height",
         type=int,
-        default=384,
+        default=256,
         help="height of image"
     )
     parser.add_argument(

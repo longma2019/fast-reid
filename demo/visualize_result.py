@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
 @author:  xingyu liao
-@contact: liaoxingyu5@jd.com
+@contact: sherlockliao01@gmail.com
 """
 
 import argparse
@@ -41,11 +41,6 @@ def get_parser():
         "--config-file",
         metavar="FILE",
         help="path to config file",
-    )
-    parser.add_argument(
-        '--device',
-        default='cuda: 1',
-        help='CUDA device to use'
     )
     parser.add_argument(
         '--parallel',
@@ -101,7 +96,7 @@ if __name__ == '__main__':
     logger = setup_logger()
     cfg = setup_cfg(args)
     test_loader, num_query = build_reid_test_loader(cfg, args.dataset_name)
-    demo = FeatureExtractionDemo(cfg, device=args.device, parallel=args.parallel)
+    demo = FeatureExtractionDemo(cfg, parallel=args.parallel)
 
     logger.info("Start extracting image features")
     feats = []

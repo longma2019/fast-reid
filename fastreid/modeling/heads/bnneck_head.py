@@ -21,12 +21,13 @@ class BNneckHead(nn.Module):
 
         # identity classification layer
         cls_type = cfg.MODEL.HEADS.CLS_LAYER
-        if cls_type == 'linear':    self.classifier = nn.Linear(in_feat, num_classes, bias=False)
-        elif cls_type == 'arcface': self.classifier = Arcface(cfg, in_feat, num_classes)
-        elif cls_type == 'circle':  self.classifier = Circle(cfg, in_feat, num_classes)
+        if cls_type == 'linear':          self.classifier = nn.Linear(in_feat, num_classes, bias=False)
+        elif cls_type == 'arcSoftmax':    self.classifier = ArcSoftmax(cfg, in_feat, num_classes)
+        elif cls_type == 'circleSoftmax': self.classifier = CircleSoftmax(cfg, in_feat, num_classes)
+        elif cls_type == 'amSoftmax':     self.classifier = AMSoftmax(cfg, in_feat, num_classes)
         else:
             raise KeyError(f"{cls_type} is invalid, please choose from "
-                           f"'linear', 'arcface' and 'circle'.")
+                           f"'linear', 'arcSoftmax', 'amSoftmax' and 'circleSoftmax'.")
 
         self.classifier.apply(weights_init_classifier)
 
@@ -37,14 +38,19 @@ class BNneckHead(nn.Module):
         global_feat = self.pool_layer(features)
         bn_feat = self.bnneck(global_feat)
         bn_feat = bn_feat[..., 0, 0]
+
         # Evaluation
         if not self.training: return bn_feat
+
         # Training
-        try:              pred_class_logits = self.classifier(bn_feat)
-        except TypeError: pred_class_logits = self.classifier(bn_feat, targets)
+        try:              cls_outputs = self.classifier(bn_feat)
+        except TypeError: cls_outputs = self.classifier(bn_feat, targets)
+
+        pred_class_logits = F.linear(bn_feat, self.classifier.weight)
 
         if self.neck_feat == "before":  feat = global_feat[..., 0, 0]
         elif self.neck_feat == "after": feat = bn_feat
         else:
             raise KeyError("MODEL.HEADS.NECK_FEAT value is invalid, must choose from ('after' & 'before')")
-        return pred_class_logits, feat, targets
+
+        return cls_outputs, pred_class_logits, feat

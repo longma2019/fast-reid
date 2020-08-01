@@ -14,8 +14,9 @@ import torch.nn.functional as F
 from .evaluator import DatasetEvaluator
 from .query_expansion import aqe
 from .rank import evaluate_rank
-from .roc import evaluate_roc
 from .rerank import re_ranking
+from .roc import evaluate_roc
+from fastreid.utils import comm
 
 import pdb
 
@@ -37,11 +38,15 @@ class ReidEvaluator(DatasetEvaluator):
         self.pids = []
         self.camids = []
 
-    def process(self, outputs):
-        self.features.append(outputs[0].cpu())
-        # pdb.set_trace()
-        self.pids.extend(outputs[1].cpu().numpy())
-        self.camids.extend(outputs[2].cpu().numpy())
+    # def process(self, outputs):
+    #     self.features.append(outputs[0].cpu())
+    #     # pdb.set_trace()
+    #     self.pids.extend(outputs[1].cpu().numpy())
+    #     self.camids.extend(outputs[2].cpu().numpy())
+    def process(self, inputs, outputs):
+        self.pids.extend(inputs["targets"])
+        self.camids.extend(inputs["camid"])
+        self.features.append(outputs.cpu())
 
     @staticmethod
     def cal_dist(metric: str, query_feat: torch.tensor, gallery_feat: torch.tensor):
@@ -55,22 +60,39 @@ class ReidEvaluator(DatasetEvaluator):
             xx = torch.pow(query_feat, 2).sum(1, keepdim=True).expand(m, n)
             yy = torch.pow(gallery_feat, 2).sum(1, keepdim=True).expand(n, m).t()
             dist = xx + yy
-            dist.addmm_(1, -2, query_feat, gallery_feat.t())
+            dist.addmm_(query_feat, gallery_feat.t(), beta=1, alpha=-2)
             dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
         return dist.cpu().numpy()
 
     def evaluate(self):
-        features = torch.cat(self.features, dim=0)
+        if comm.get_world_size() > 1:
+            comm.synchronize()
+            features = comm.gather(self.features)
+            features = sum(features, [])
 
+            pids = comm.gather(self.pids)
+            pids = sum(pids, [])
+
+            camids = comm.gather(self.camids)
+            camids = sum(camids, [])
+
+            if not comm.is_main_process():
+                return {}
+        else:
+            features = self.features
+            pids = self.pids
+            camids = self.camids
+
+        features = torch.cat(features, dim=0)
         # query feature, person ids and camera ids
         query_features = features[:self._num_query]
-        query_pids = np.asarray(self.pids[:self._num_query])
-        query_camids = np.asarray(self.camids[:self._num_query])
+        query_pids = np.asarray(pids[:self._num_query])
+        query_camids = np.asarray(camids[:self._num_query])
 
         # gallery features, person ids and camera ids
         gallery_features = features[self._num_query:]
-        gallery_pids = np.asarray(self.pids[self._num_query:])
-        gallery_camids = np.asarray(self.camids[self._num_query:])
+        gallery_pids = np.asarray(pids[self._num_query:])
+        gallery_camids = np.asarray(camids[self._num_query:])
 
         self._results = OrderedDict()
 
@@ -103,5 +125,6 @@ class ReidEvaluator(DatasetEvaluator):
         tprs = evaluate_roc(dist, query_pids, gallery_pids, query_camids, gallery_camids)
         fprs = [1e-4, 1e-3, 1e-2]
         for i in range(len(fprs)):
-            self._results["TPR@FPR={}".format(fprs[i])] = tprs[i]
+            self._results["TPR@FPR={:.0e}".format(fprs[i])] = tprs[i]
+
         return copy.deepcopy(self._results)
