@@ -7,8 +7,9 @@
 import torchvision.transforms as T
 
 from .transforms import *
-from .autoaugment import *
 from PIL import Image
+from .autoaugment import AutoAugment
+
 
 def build_transforms(cfg, is_train=True):
     res = []
@@ -33,7 +34,12 @@ def build_transforms(cfg, is_train=True):
         padding_mode = cfg.INPUT.PADDING_MODE
 
         # color jitter
-        do_cj = cfg.INPUT.DO_CJ
+        do_cj = cfg.INPUT.CJ.ENABLED
+        cj_prob = cfg.INPUT.CJ.PROB
+        cj_brightness = cfg.INPUT.CJ.BRIGHTNESS
+        cj_contrast = cfg.INPUT.CJ.CONTRAST
+        cj_saturation = cfg.INPUT.CJ.SATURATION
+        cj_hue = cfg.INPUT.CJ.HUE
 
         # random rotation
         do_rot = cfg.INPUT.DO_ROTATION
@@ -47,7 +53,7 @@ def build_transforms(cfg, is_train=True):
         rpt_prob = cfg.INPUT.RPT.PROB
 
         if do_autoaug:
-            res.append(ImageNetPolicy(total_iter))
+            res.append(AutoAugment(total_iter))
         res.append(T.Resize(size_train, interpolation=3))
         if do_rot:
             res.append(T.RandomRotation(180,resample=Image.BILINEAR)) 
@@ -57,7 +63,7 @@ def build_transforms(cfg, is_train=True):
             res.extend([T.Pad(padding, padding_mode=padding_mode),
                         T.RandomCrop(size_train)])
         if do_cj:
-            res.append(T.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0))
+            T.RandomApply([T.ColorJitter(cj_brightness, cj_contrast, cj_saturation, cj_hue)], p=cj_prob)
         if do_augmix:
             res.append(AugMix())
         if do_rea:

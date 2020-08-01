@@ -5,6 +5,10 @@ import sys
 from collections import Mapping, OrderedDict
 
 import numpy as np
+from tabulate import tabulate
+from termcolor import colored
+
+logger = logging.getLogger(__name__)
 
 
 def print_csv_format(results):
@@ -15,10 +19,23 @@ def print_csv_format(results):
         results (OrderedDict[dict]): task_name -> {metric -> score}
     """
     assert isinstance(results, OrderedDict), results  # unordered results cannot be properly printed
-    logger = logging.getLogger(__name__)
+    task = list(results.keys())[0]
+    metrics = ["Datasets"] + [k for k in results[task]]
+
+    csv_results = []
     for task, res in results.items():
-        logger.info("Task: {}".format(task))
-        logger.info("{:.1%}".format(res))
+        csv_results.append((task, *list(res.values())))
+
+    # tabulate it
+    table = tabulate(
+        csv_results,
+        tablefmt="pipe",
+        floatfmt=".2%",
+        headers=metrics,
+        numalign="left",
+    )
+
+    logger.info("Evaluation results in csv format: \n" + colored(table, "cyan"))
 
 
 def verify_results(cfg, results):
