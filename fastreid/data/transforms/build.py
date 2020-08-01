@@ -8,7 +8,7 @@ import torchvision.transforms as T
 
 from .transforms import *
 from .autoaugment import *
-
+from PIL import Image
 
 def build_transforms(cfg, is_train=True):
     res = []
@@ -35,6 +35,9 @@ def build_transforms(cfg, is_train=True):
         # color jitter
         do_cj = cfg.INPUT.DO_CJ
 
+        # random rotation
+        do_rot = cfg.INPUT.DO_ROTATION
+
         # random erasing
         do_rea = cfg.INPUT.REA.ENABLED
         rea_prob = cfg.INPUT.REA.PROB
@@ -46,6 +49,8 @@ def build_transforms(cfg, is_train=True):
         if do_autoaug:
             res.append(ImageNetPolicy(total_iter))
         res.append(T.Resize(size_train, interpolation=3))
+        if do_rot:
+            res.append(T.RandomRotation(180,resample=Image.BILINEAR)) 
         if do_flip:
             res.append(T.RandomHorizontalFlip(p=flip_prob))
         if do_pad:

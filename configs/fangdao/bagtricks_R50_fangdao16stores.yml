@@ -1,0 +1,16 @@
+_BASE_: "../Base-bagtricks.yml"
+
+MODEL:
+  HEADS:
+    NUM_CLASSES: 9368
+
+DATASETS:
+  NAMES: ("Fangdao_16stores",)
+  TESTS: ("Fangdao_16stores",)
+
+INPUT:
+  SIZE_TRAIN: [224, 224]
+  SIZE_TEST: [224, 224]
+
+
+OUTPUT_DIR: "logs/Fangdao_16stores/bagtricks_R50"

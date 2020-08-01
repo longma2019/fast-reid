@@ -1,0 +1,20 @@
+_BASE_: "../Base-Strongerbaseline.yml"
+
+MODEL:
+  HEADS:
+    NUM_CLASSES: 9368
+
+DATASETS:
+  NAMES: ("Fangdao_16stores",)
+  TESTS: ("Fangdao_16stores",)
+
+INPUT:
+  SIZE_TRAIN: [224, 224]
+  SIZE_TEST: [224, 224]
+
+TEST:
+  PRECISE_BN:
+    DATASET: 'Fangdao_16stores'
+  EVAL_PERIOD: 1
+
+OUTPUT_DIR: "logs/Fangdao_16stores/sbs_R50"

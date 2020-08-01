@@ -17,6 +17,8 @@ from .rank import evaluate_rank
 from .roc import evaluate_roc
 from .rerank import re_ranking
 
+import pdb
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,6 +39,7 @@ class ReidEvaluator(DatasetEvaluator):
 
     def process(self, outputs):
         self.features.append(outputs[0].cpu())
+        # pdb.set_trace()
         self.pids.extend(outputs[1].cpu().numpy())
         self.camids.extend(outputs[2].cpu().numpy())
 

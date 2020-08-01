@@ -136,6 +136,8 @@ _C.INPUT.PADDING_MODE = 'constant'
 _C.INPUT.PADDING = 10
 # Random color jitter
 _C.INPUT.DO_CJ = False
+# Random rotation for fangdao
+_C.INPUT.DO_ROTATION = False
 # Auto augmentation
 _C.INPUT.DO_AUTOAUG = False
 # Augmix augmentation
